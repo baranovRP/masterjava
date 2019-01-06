@@ -1,6 +1,9 @@
 package ru.javaops.masterjava.matrix;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
@@ -15,6 +18,29 @@ public class MatrixUtil {
         final int matrixSize = matrixA.length;
         final int[][] matrixC = new int[matrixSize][matrixSize];
 
+        int[][] transposedMatrixB = new int[matrixSize][matrixSize];
+        for (int i = 0; i < matrixSize; i++) {
+            for (int j = 0; j < matrixSize; j++) {
+                transposedMatrixB[i][j] = matrixB[j][i];
+            }
+        }
+
+        List<Callable<Void>> tasks = new ArrayList<>();
+        for (int i = 0; i < matrixSize; i++) {
+            int col = i;
+            Callable<Void> task = () -> {
+                for (int j = 0; j < matrixSize; j++) {
+                    int sum = 0;
+                    for (int k = 0; k < matrixSize; k++) {
+                        sum += matrixA[col][k] * transposedMatrixB[j][k];
+                    }
+                    matrixC[col][j] = sum;
+                }
+                return null;
+            };
+            tasks.add(task);
+        }
+        executor.invokeAll(tasks);
         return matrixC;
     }
 
